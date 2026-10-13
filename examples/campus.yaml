@@ -1,0 +1,68 @@
+# Three-building campus, 10 routers.
+#   Area 0  backbone: two core routers + data-centre LAN
+#   Area 1  Engineering: triangle (dist-dist link, dual-homed access router)
+#   Area 2  Admin/Library: access router dual-homed, no dist-dist link
+#   Area 3  Hostels: LANs hang directly off two distribution routers joined by one link
+# A link takes its endpoints' area when they share one, otherwise it is a backbone link.
+name: campus-3b
+description: Three-building campus used for the worked example and the containerlab testbed.
+
+spaces:
+  lan: 10.20.0.0/16
+  p2p: 172.16.0.0/24
+  loopback: 192.168.255.0/24
+
+routers:
+  core1: {area: 0, building: Core, role: core}
+  core2: {area: 0, building: Core, role: core}
+  a-d1:  {area: 1, building: Engineering, role: distribution}
+  a-d2:  {area: 1, building: Engineering, role: distribution}
+  a-acc: {area: 1, building: Engineering, role: access}
+  b-d1:  {area: 2, building: Admin, role: distribution}
+  b-d2:  {area: 2, building: Admin, role: distribution}
+  b-acc: {area: 2, building: Admin, role: access}
+  c-d1:  {area: 3, building: Hostels, role: distribution}
+  c-d2:  {area: 3, building: Hostels, role: distribution}
+
+links:
+  # backbone
+  - {a: core1, b: core2, cost: 5}
+  - {a: core1, b: a-d1, cost: 10}
+  - {a: core2, b: a-d2, cost: 10}
+  - {a: core1, b: b-d1, cost: 10}
+  - {a: core2, b: b-d2, cost: 10}
+  - {a: core1, b: c-d1, cost: 10}
+  - {a: core2, b: c-d2, cost: 10}
+  - {a: a-d2, b: b-d1, cost: 20}   # inter-building fibre
+  # Engineering (area 1)
+  - {a: a-d1, b: a-d2, cost: 5}
+  - {a: a-d1, b: a-acc, cost: 2}
+  - {a: a-d2, b: a-acc, cost: 2}
+  # Admin (area 2)
+  - {a: b-d1, b: b-acc, cost: 2}
+  - {a: b-d2, b: b-acc, cost: 4}
+  # Hostels (area 3)
+  - {a: c-d1, b: c-d2, cost: 8}
+
+subnets:
+  - {name: datacenter,   router: core1, hosts: 60}
+  - {name: cse-lab,      router: a-acc, hosts: 200}
+  - {name: ece-lab,      router: a-acc, hosts: 120}
+  - {name: faculty-eng,  router: a-acc, hosts: 60}
+  - {name: eng-wifi,     router: a-d1,  hosts: 400}
+  - {name: eng-servers,  router: a-d2,  hosts: 25}
+  - {name: library,      router: b-acc, hosts: 150}
+  - {name: admin,        router: b-acc, hosts: 80}
+  - {name: accounts,     router: b-acc, hosts: 40}
+  - {name: admin-wifi,   router: b-d1,  hosts: 250}
+  - {name: cctv,         router: b-d2,  hosts: 30}
+  - {name: hostel-1,     router: c-d1,  hosts: 300}
+  - {name: hostel-wifi,  router: c-d1,  hosts: 500}
+  - {name: hostel-2,     router: c-d2,  hosts: 300}
+  - {name: sports,       router: c-d2,  hosts: 50}
+
+failures:
+  single_link: true          # every single-link failure
+  extra:                     # plus chosen double failures
+    - [a-d1--a-acc, a-d2--a-d1]
+    - [core1--b-d1, b-d2--b-acc]
