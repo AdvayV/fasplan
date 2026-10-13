@@ -1,0 +1,414 @@
+{
+  "strategy": "fasp",
+  "protocol": "ospf",
+  "allocation_method": "failure-aware",
+  "address_utilization": 0.5464,
+  "domain_blocks": {
+    "0": "10.20.24.0/26",
+    "1": "10.20.0.0/21",
+    "2": "10.20.8.0/21",
+    "3": "10.20.16.0/21"
+  },
+  "subnets": [
+    {
+      "subnet": "cse-lab",
+      "area": 1,
+      "router": "a-acc",
+      "hosts_needed": 200,
+      "prefix": "10.20.0.0/24",
+      "mask": "255.255.255.0",
+      "usable": 254,
+      "gateway": "10.20.0.1",
+      "first_host": "10.20.0.2",
+      "last_host": "10.20.0.254",
+      "broadcast": "10.20.0.255"
+    },
+    {
+      "subnet": "ece-lab",
+      "area": 1,
+      "router": "a-acc",
+      "hosts_needed": 120,
+      "prefix": "10.20.1.0/25",
+      "mask": "255.255.255.128",
+      "usable": 126,
+      "gateway": "10.20.1.1",
+      "first_host": "10.20.1.2",
+      "last_host": "10.20.1.126",
+      "broadcast": "10.20.1.127"
+    },
+    {
+      "subnet": "faculty-eng",
+      "area": 1,
+      "router": "a-acc",
+      "hosts_needed": 60,
+      "prefix": "10.20.1.128/26",
+      "mask": "255.255.255.192",
+      "usable": 62,
+      "gateway": "10.20.1.129",
+      "first_host": "10.20.1.130",
+      "last_host": "10.20.1.190",
+      "broadcast": "10.20.1.191"
+    },
+    {
+      "subnet": "eng-servers",
+      "area": 1,
+      "router": "a-d2",
+      "hosts_needed": 25,
+      "prefix": "10.20.2.0/27",
+      "mask": "255.255.255.224",
+      "usable": 30,
+      "gateway": "10.20.2.1",
+      "first_host": "10.20.2.2",
+      "last_host": "10.20.2.30",
+      "broadcast": "10.20.2.31"
+    },
+    {
+      "subnet": "eng-wifi",
+      "area": 1,
+      "router": "a-d1",
+      "hosts_needed": 400,
+      "prefix": "10.20.4.0/23",
+      "mask": "255.255.254.0",
+      "usable": 510,
+      "gateway": "10.20.4.1",
+      "first_host": "10.20.4.2",
+      "last_host": "10.20.5.254",
+      "broadcast": "10.20.5.255"
+    },
+    {
+      "subnet": "library",
+      "area": 2,
+      "router": "b-acc",
+      "hosts_needed": 150,
+      "prefix": "10.20.8.0/24",
+      "mask": "255.255.255.0",
+      "usable": 254,
+      "gateway": "10.20.8.1",
+      "first_host": "10.20.8.2",
+      "last_host": "10.20.8.254",
+      "broadcast": "10.20.8.255"
+    },
+    {
+      "subnet": "admin",
+      "area": 2,
+      "router": "b-acc",
+      "hosts_needed": 80,
+      "prefix": "10.20.9.0/25",
+      "mask": "255.255.255.128",
+      "usable": 126,
+      "gateway": "10.20.9.1",
+      "first_host": "10.20.9.2",
+      "last_host": "10.20.9.126",
+      "broadcast": "10.20.9.127"
+    },
+    {
+      "subnet": "accounts",
+      "area": 2,
+      "router": "b-acc",
+      "hosts_needed": 40,
+      "prefix": "10.20.9.128/26",
+      "mask": "255.255.255.192",
+      "usable": 62,
+      "gateway": "10.20.9.129",
+      "first_host": "10.20.9.130",
+      "last_host": "10.20.9.190",
+      "broadcast": "10.20.9.191"
+    },
+    {
+      "subnet": "admin-wifi",
+      "area": 2,
+      "router": "b-d1",
+      "hosts_needed": 250,
+      "prefix": "10.20.10.0/24",
+      "mask": "255.255.255.0",
+      "usable": 254,
+      "gateway": "10.20.10.1",
+      "first_host": "10.20.10.2",
+      "last_host": "10.20.10.254",
+      "broadcast": "10.20.10.255"
+    },
+    {
+      "subnet": "cctv",
+      "area": 2,
+      "router": "b-d2",
+      "hosts_needed": 30,
+      "prefix": "10.20.12.0/27",
+      "mask": "255.255.255.224",
+      "usable": 30,
+      "gateway": "10.20.12.1",
+      "first_host": "10.20.12.2",
+      "last_host": "10.20.12.30",
+      "broadcast": "10.20.12.31"
+    },
+    {
+      "subnet": "hostel-1",
+      "area": 3,
+      "router": "c-d1",
+      "hosts_needed": 300,
+      "prefix": "10.20.16.0/23",
+      "mask": "255.255.254.0",
+      "usable": 510,
+      "gateway": "10.20.16.1",
+      "first_host": "10.20.16.2",
+      "last_host": "10.20.17.254",
+      "broadcast": "10.20.17.255"
+    },
+    {
+      "subnet": "hostel-wifi",
+      "area": 3,
+      "router": "c-d1",
+      "hosts_needed": 500,
+      "prefix": "10.20.18.0/23",
+      "mask": "255.255.254.0",
+      "usable": 510,
+      "gateway": "10.20.18.1",
+      "first_host": "10.20.18.2",
+      "last_host": "10.20.19.254",
+      "broadcast": "10.20.19.255"
+    },
+    {
+      "subnet": "hostel-2",
+      "area": 3,
+      "router": "c-d2",
+      "hosts_needed": 300,
+      "prefix": "10.20.20.0/23",
+      "mask": "255.255.254.0",
+      "usable": 510,
+      "gateway": "10.20.20.1",
+      "first_host": "10.20.20.2",
+      "last_host": "10.20.21.254",
+      "broadcast": "10.20.21.255"
+    },
+    {
+      "subnet": "sports",
+      "area": 3,
+      "router": "c-d2",
+      "hosts_needed": 50,
+      "prefix": "10.20.22.0/26",
+      "mask": "255.255.255.192",
+      "usable": 62,
+      "gateway": "10.20.22.1",
+      "first_host": "10.20.22.2",
+      "last_host": "10.20.22.62",
+      "broadcast": "10.20.22.63"
+    },
+    {
+      "subnet": "datacenter",
+      "area": 0,
+      "router": "core1",
+      "hosts_needed": 60,
+      "prefix": "10.20.24.0/26",
+      "mask": "255.255.255.192",
+      "usable": 62,
+      "gateway": "10.20.24.1",
+      "first_host": "10.20.24.2",
+      "last_host": "10.20.24.62",
+      "broadcast": "10.20.24.63"
+    }
+  ],
+  "adverts": {
+    "0": [
+      {
+        "prefix": "10.20.24.0/26",
+        "kind": "subnet",
+        "members": [
+          "datacenter"
+        ],
+        "note": ""
+      }
+    ],
+    "1": [
+      {
+        "prefix": "10.20.0.0/22",
+        "kind": "summary",
+        "members": [
+          "cse-lab",
+          "ece-lab",
+          "eng-servers",
+          "faculty-eng"
+        ],
+        "note": "safe in all checked scenarios"
+      },
+      {
+        "prefix": "10.20.4.0/23",
+        "kind": "subnet",
+        "members": [
+          "eng-wifi"
+        ],
+        "note": ""
+      }
+    ],
+    "2": [
+      {
+        "prefix": "10.20.8.0/23",
+        "kind": "summary",
+        "members": [
+          "accounts",
+          "admin",
+          "library"
+        ],
+        "note": "safe in all checked scenarios"
+      },
+      {
+        "prefix": "10.20.10.0/24",
+        "kind": "subnet",
+        "members": [
+          "admin-wifi"
+        ],
+        "note": ""
+      },
+      {
+        "prefix": "10.20.12.0/27",
+        "kind": "subnet",
+        "members": [
+          "cctv"
+        ],
+        "note": ""
+      }
+    ],
+    "3": [
+      {
+        "prefix": "10.20.16.0/22",
+        "kind": "summary",
+        "members": [
+          "hostel-1",
+          "hostel-wifi"
+        ],
+        "note": "safe in all checked scenarios"
+      },
+      {
+        "prefix": "10.20.20.0/22",
+        "kind": "summary",
+        "members": [
+          "hostel-2",
+          "sports"
+        ],
+        "note": "safe in all checked scenarios"
+      }
+    ]
+  },
+  "advert_count": 8,
+  "summary_count": 4,
+  "decisions": [
+    {
+      "prefix": "10.20.0.0/21",
+      "members": [
+        "cse-lab",
+        "ece-lab",
+        "eng-servers",
+        "eng-wifi",
+        "faculty-eng"
+      ],
+      "verdict": "split",
+      "reason": "fail a-d1--a-acc + a-d1--a-d2: a-d1 still advertises the summary but cannot reach cse-lab, so traffic from b-acc is dropped"
+    },
+    {
+      "prefix": "10.20.0.0/22",
+      "members": [
+        "cse-lab",
+        "ece-lab",
+        "eng-servers",
+        "faculty-eng"
+      ],
+      "verdict": "summarize",
+      "reason": ""
+    },
+    {
+      "prefix": "10.20.8.0/21",
+      "members": [
+        "accounts",
+        "admin",
+        "admin-wifi",
+        "cctv",
+        "library"
+      ],
+      "verdict": "split",
+      "reason": "normal: traffic from a-d2 to cctv exits via b-d1, cost 26 vs 20 (x1.30)"
+    },
+    {
+      "prefix": "10.20.8.0/22",
+      "members": [
+        "accounts",
+        "admin",
+        "admin-wifi",
+        "library"
+      ],
+      "verdict": "split",
+      "reason": "fail b-d1--b-acc: b-d1 still advertises the summary but cannot reach accounts, so traffic from a-acc is dropped"
+    },
+    {
+      "prefix": "10.20.8.0/23",
+      "members": [
+        "accounts",
+        "admin",
+        "library"
+      ],
+      "verdict": "summarize",
+      "reason": ""
+    },
+    {
+      "prefix": "10.20.16.0/21",
+      "members": [
+        "hostel-1",
+        "hostel-2",
+        "hostel-wifi",
+        "sports"
+      ],
+      "verdict": "split",
+      "reason": "normal: traffic from a-acc to hostel-2 exits via c-d1, cost 30 vs 22 (x1.36)"
+    },
+    {
+      "prefix": "10.20.16.0/22",
+      "members": [
+        "hostel-1",
+        "hostel-wifi"
+      ],
+      "verdict": "summarize",
+      "reason": ""
+    },
+    {
+      "prefix": "10.20.20.0/22",
+      "members": [
+        "hostel-2",
+        "sports"
+      ],
+      "verdict": "summarize",
+      "reason": ""
+    }
+  ],
+  "p2p": {
+    "core1--core2": "172.16.0.0/31",
+    "core1--a-d1": "172.16.0.2/31",
+    "core2--a-d2": "172.16.0.4/31",
+    "core1--b-d1": "172.16.0.6/31",
+    "core2--b-d2": "172.16.0.8/31",
+    "core1--c-d1": "172.16.0.10/31",
+    "core2--c-d2": "172.16.0.12/31",
+    "a-d2--b-d1": "172.16.0.14/31",
+    "a-d1--a-d2": "172.16.0.16/31",
+    "a-d1--a-acc": "172.16.0.18/31",
+    "a-d2--a-acc": "172.16.0.20/31",
+    "b-d1--b-acc": "172.16.0.22/31",
+    "b-d2--b-acc": "172.16.0.24/31",
+    "c-d1--c-d2": "172.16.0.26/31"
+  },
+  "loopbacks": {
+    "a-acc": "192.168.255.1",
+    "a-d1": "192.168.255.2",
+    "a-d2": "192.168.255.3",
+    "b-acc": "192.168.255.4",
+    "b-d1": "192.168.255.5",
+    "b-d2": "192.168.255.6",
+    "c-d1": "192.168.255.7",
+    "c-d2": "192.168.255.8",
+    "core1": "192.168.255.9",
+    "core2": "192.168.255.10"
+  },
+  "meta": {
+    "verify_rounds": 1,
+    "label": "Proposed (failure-aware design)",
+    "tau_normal": 1.25,
+    "tau_failure": 1.5,
+    "scenarios": 17
+  }
+}
