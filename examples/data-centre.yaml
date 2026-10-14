@@ -1,0 +1,40 @@
+name: data-centre
+description: Three distribution routers form a redundant triangle inside a data centre.
+demo:
+  title: Data centre
+  description: Cut two links in a redundant triangle and follow database traffic through the remaining core entrance.
+  source: client
+  subnet: database
+  failed: [dc-left--dc-middle, dc-left--dc-right]
+spaces:
+  lan: 10.40.0.0/16
+  p2p: 172.18.0.0/24
+  loopback: 192.168.253.0/24
+routers:
+  core1: {area: 0, building: Backbone, role: core}
+  core2: {area: 0, building: Backbone, role: core}
+  client: {area: 0, building: Backbone, role: access}
+  dc-left: {area: 1, building: Data centre, role: distribution}
+  dc-middle: {area: 1, building: Data centre, role: distribution}
+  dc-right: {area: 1, building: Data centre, role: distribution}
+links:
+  - {a: core1, b: core2, cost: 5}
+  - {a: client, b: core2, cost: 1}
+  - {a: core1, b: dc-left, cost: 8}
+  - {a: core1, b: dc-middle, cost: 8}
+  - {a: core2, b: dc-right, cost: 3}
+  - {a: dc-left, b: dc-middle, cost: 2}
+  - {a: dc-left, b: dc-right, cost: 2}
+  - {a: dc-middle, b: dc-right, cost: 2}
+subnets:
+  - {name: office-users, router: client, hosts: 60}
+  - {name: database, router: dc-left, hosts: 60}
+  - {name: database-replica, router: dc-left, hosts: 60}
+  - {name: web-services, router: dc-middle, hosts: 60}
+  - {name: application-servers, router: dc-middle, hosts: 60}
+  - {name: storage, router: dc-right, hosts: 60}
+  - {name: backups, router: dc-right, hosts: 60}
+failures:
+  single_link: true
+  extra:
+    - [dc-left--dc-middle, dc-left--dc-right]

@@ -4,6 +4,12 @@
 #   Area 2  Admin/Library: access router dual-homed, no dist-dist link
 #   Area 3  Hostels: LANs hang directly off two distribution routers joined by one link
 # A link takes its endpoints' area when they share one, otherwise it is a backbone link.
+demo:
+  title: Campus network
+  description: Break the hostel connection and compare a discarded flow with the working backbone detour.
+  source: a-d2
+  subnet: hostel-1
+  failed: [c-d1--c-d2]
 name: campus-3b
 description: Three-building campus used for the worked example and the containerlab testbed.
 

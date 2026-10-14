@@ -1,0 +1,32 @@
+name: branch-office
+description: A small office with two border routers and a checkout network behind the left border.
+demo:
+  title: Branch office
+  description: A single internal failure leaves checkout reachable through one entrance but hidden by the broad summary.
+  source: client
+  subnet: checkout
+  failed: [branch-left--branch-right]
+spaces:
+  lan: 10.30.0.0/16
+  p2p: 172.17.0.0/24
+  loopback: 192.168.254.0/24
+routers:
+  core1: {area: 0, building: Backbone, role: core}
+  core2: {area: 0, building: Backbone, role: core}
+  client: {area: 0, building: Backbone, role: access}
+  branch-left: {area: 1, building: Office, role: distribution}
+  branch-right: {area: 1, building: Office, role: distribution}
+links:
+  - {a: core1, b: core2, cost: 5}
+  - {a: client, b: core2, cost: 1}
+  - {a: core1, b: branch-left, cost: 4}
+  - {a: core2, b: branch-right, cost: 4}
+  - {a: branch-left, b: branch-right, cost: 2}
+subnets:
+  - {name: office-users, router: client, hosts: 60}
+  - {name: checkout, router: branch-left, hosts: 60}
+  - {name: accounting, router: branch-left, hosts: 60}
+  - {name: warehouse, router: branch-right, hosts: 60}
+  - {name: office-wifi, router: branch-right, hosts: 60}
+failures:
+  single_link: true

@@ -219,7 +219,12 @@ def create_app() -> FastAPI:
         out = []
         if d:
             for p in sorted(d.glob("*.y*ml")):
-                out.append({"name": p.stem, "yaml": p.read_text()})
+                text = p.read_text()
+                metadata = yaml.safe_load(text) or {}
+                demo = metadata.get("demo", {})
+                out.append({"name": p.stem, "yaml": text, "demo": demo,
+                            "title": demo.get("title", p.stem.replace("-", " ").title())})
+        out.sort(key=lambda item: (item["name"] != "campus", item["name"]))
         return {"examples": out}
 
     @app.get("/api/generate")
