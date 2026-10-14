@@ -1,0 +1,51 @@
+!
+version 12.2
+hostname b-d2
+no ip domain-lookup
+ip routing
+!
+interface Loopback0
+ ip address 192.168.255.6 255.255.255.255
+!
+interface FastEthernet0/0
+ description to core2; area 0; cost 10
+ ip address 172.16.0.18 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 10
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet1/0
+ description to b-acc; area 2; cost 4
+ ip address 172.16.0.49 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 4
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet2/0
+ description cctv; 30 hosts planned
+ ip address 10.20.14.193 255.255.255.224
+ ip ospf cost 1
+ duplex auto
+ speed auto
+ no shutdown
+!
+router ospf 1
+ router-id 192.168.255.6
+ log-adjacency-changes
+ network 192.168.255.6 0.0.0.0 area 0
+ network 172.16.0.18 0.0.0.0 area 0
+ network 172.16.0.49 0.0.0.0 area 2
+ network 10.20.14.193 0.0.0.0 area 2
+ passive-interface Loopback0
+ passive-interface FastEthernet2/0
+ area 2 range 10.20.12.0 255.255.252.0
+!
+ip classless
+line con 0
+ logging synchronous
+!
+end

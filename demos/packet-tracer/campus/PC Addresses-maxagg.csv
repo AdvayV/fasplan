@@ -1,0 +1,16 @@
+PC,Building,Router,Router LAN Interface,IP,Mask,Gateway,Hosts Planned
+datacenter,Core,core1,FastEthernet4/0,10.20.16.2,255.255.255.192,10.20.16.1,60
+cse-lab,Engineering,a-acc,FastEthernet2/0,10.20.10.2,255.255.255.0,10.20.10.1,200
+ece-lab,Engineering,a-acc,FastEthernet3/0,10.20.11.2,255.255.255.128,10.20.11.1,120
+faculty-eng,Engineering,a-acc,FastEthernet4/0,10.20.11.130,255.255.255.192,10.20.11.129,60
+eng-wifi,Engineering,a-d1,FastEthernet3/0,10.20.8.2,255.255.254.0,10.20.8.1,400
+eng-servers,Engineering,a-d2,FastEthernet4/0,10.20.11.194,255.255.255.224,10.20.11.193,25
+library,Admin,b-acc,FastEthernet2/0,10.20.13.2,255.255.255.0,10.20.13.1,150
+admin,Admin,b-acc,FastEthernet3/0,10.20.14.2,255.255.255.128,10.20.14.1,80
+accounts,Admin,b-acc,FastEthernet4/0,10.20.14.130,255.255.255.192,10.20.14.129,40
+admin-wifi,Admin,b-d1,FastEthernet3/0,10.20.12.2,255.255.255.0,10.20.12.1,250
+cctv,Admin,b-d2,FastEthernet2/0,10.20.14.194,255.255.255.224,10.20.14.193,30
+hostel-1,Hostels,c-d1,FastEthernet2/0,10.20.0.2,255.255.254.0,10.20.0.1,300
+hostel-wifi,Hostels,c-d1,FastEthernet3/0,10.20.4.2,255.255.254.0,10.20.4.1,500
+hostel-2,Hostels,c-d2,FastEthernet2/0,10.20.2.2,255.255.254.0,10.20.2.1,300
+sports,Hostels,c-d2,FastEthernet3/0,10.20.6.2,255.255.255.192,10.20.6.1,50

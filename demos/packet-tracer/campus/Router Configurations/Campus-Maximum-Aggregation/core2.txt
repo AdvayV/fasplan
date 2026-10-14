@@ -1,0 +1,60 @@
+!
+version 12.2
+hostname core2
+no ip domain-lookup
+ip routing
+!
+interface Loopback0
+ ip address 192.168.255.10 255.255.255.255
+!
+interface FastEthernet0/0
+ description to core1; area 0; cost 5
+ ip address 172.16.0.2 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 5
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet1/0
+ description to a-d2; area 0; cost 10
+ ip address 172.16.0.9 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 10
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet2/0
+ description to b-d2; area 0; cost 10
+ ip address 172.16.0.17 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 10
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet3/0
+ description to c-d2; area 0; cost 10
+ ip address 172.16.0.25 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 10
+ duplex auto
+ speed auto
+ no shutdown
+!
+router ospf 1
+ router-id 192.168.255.10
+ log-adjacency-changes
+ network 192.168.255.10 0.0.0.0 area 0
+ network 172.16.0.2 0.0.0.0 area 0
+ network 172.16.0.9 0.0.0.0 area 0
+ network 172.16.0.17 0.0.0.0 area 0
+ network 172.16.0.25 0.0.0.0 area 0
+ passive-interface Loopback0
+!
+ip classless
+line con 0
+ logging synchronous
+!
+end

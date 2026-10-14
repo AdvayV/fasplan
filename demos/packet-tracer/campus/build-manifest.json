@@ -1,0 +1,90 @@
+[
+  {
+    "file": "Campus-Proposed.pkt",
+    "bytes": 70592,
+    "sha256": "fb2fe09bb5bc8c8ffe6b429b7813362a37a452f2f80e3123969e8ea10b7aa515",
+    "routers": 10,
+    "switches": 15,
+    "pcs": 15,
+    "links": 44,
+    "source_pc_ip": "10.20.2.2",
+    "destination_pc_ip": "10.20.16.2",
+    "failed_links": [],
+    "fasplan_expected_status": "delivered",
+    "fasplan_expected_router_path": [
+      "a-d2",
+      "core2",
+      "core1",
+      "c-d1"
+    ],
+    "validation": "Container authentication, XML, hardware ports, unique device IDs, physical placements and cable endpoints checked. User confirmed the proposed-plan diagram is visible in Packet Tracer 9.0.1. Live ping is not yet verified.",
+    "buffer_filtered_events_only": true,
+    "gui_load_user_confirmed": true
+  },
+  {
+    "file": "Campus-Proposed-Hostel-Link-Down.pkt",
+    "bytes": 70603,
+    "sha256": "44ccd80fdc17b814317377f48084491650a1ce558455b028b558cfb5474cd088",
+    "routers": 10,
+    "switches": 15,
+    "pcs": 15,
+    "links": 44,
+    "source_pc_ip": "10.20.2.2",
+    "destination_pc_ip": "10.20.16.2",
+    "failed_links": [
+      "c-d1--c-d2"
+    ],
+    "fasplan_expected_status": "delivered",
+    "fasplan_expected_router_path": [
+      "a-d2",
+      "core2",
+      "core1",
+      "c-d1"
+    ],
+    "validation": "Container authentication, XML, hardware ports, unique device IDs, physical placements and cable endpoints checked. Packet Tracer GUI load and live ping are not yet verified.",
+    "buffer_filtered_events_only": true
+  },
+  {
+    "file": "Campus-Maximum-Aggregation.pkt",
+    "bytes": 70614,
+    "sha256": "5850c4835e6a89e120345ebcc0f7fda340da19bef628e44412ec4c7c1b027d9b",
+    "routers": 10,
+    "switches": 15,
+    "pcs": 15,
+    "links": 44,
+    "source_pc_ip": "10.20.11.194",
+    "destination_pc_ip": "10.20.0.2",
+    "failed_links": [],
+    "fasplan_expected_status": "delivered",
+    "fasplan_expected_router_path": [
+      "a-d2",
+      "core2",
+      "c-d2",
+      "c-d1"
+    ],
+    "validation": "Container authentication, XML, hardware ports, unique device IDs, physical placements and cable endpoints checked. Packet Tracer GUI load and live ping are not yet verified.",
+    "buffer_filtered_events_only": true
+  },
+  {
+    "file": "Campus-Maximum-Aggregation-Hostel-Link-Down.pkt",
+    "bytes": 70624,
+    "sha256": "c52a0f74feaa6cab39161f8398bd640dcbe53a00a50babc3496a6d9d011fe2c7",
+    "routers": 10,
+    "switches": 15,
+    "pcs": 15,
+    "links": 44,
+    "source_pc_ip": "10.20.11.194",
+    "destination_pc_ip": "10.20.0.2",
+    "failed_links": [
+      "c-d1--c-d2"
+    ],
+    "fasplan_expected_status": "blackhole",
+    "fasplan_expected_router_path": [
+      "a-d2",
+      "core2",
+      "c-d2"
+    ],
+    "validation": "Container authentication, XML, hardware ports, unique device IDs, physical placements and cable endpoints checked. Packet Tracer GUI load and live ping are not yet verified.",
+    "buffer_filtered_events_only": true
+  }
+]

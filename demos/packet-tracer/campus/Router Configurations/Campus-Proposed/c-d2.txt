@@ -1,0 +1,62 @@
+!
+version 12.2
+hostname c-d2
+no ip domain-lookup
+ip routing
+!
+interface Loopback0
+ ip address 192.168.255.8 255.255.255.255
+!
+interface FastEthernet0/0
+ description to core2; area 0; cost 10
+ ip address 172.16.0.26 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 10
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet1/0
+ description to c-d1; area 3; cost 8
+ ip address 172.16.0.54 255.255.255.252
+ ip ospf network point-to-point
+ ip ospf cost 8
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet2/0
+ description hostel-2; 300 hosts planned
+ ip address 10.20.20.1 255.255.254.0
+ ip ospf cost 1
+ duplex auto
+ speed auto
+ no shutdown
+!
+interface FastEthernet3/0
+ description sports; 50 hosts planned
+ ip address 10.20.22.1 255.255.255.192
+ ip ospf cost 1
+ duplex auto
+ speed auto
+ no shutdown
+!
+router ospf 1
+ router-id 192.168.255.8
+ log-adjacency-changes
+ network 192.168.255.8 0.0.0.0 area 0
+ network 172.16.0.26 0.0.0.0 area 0
+ network 172.16.0.54 0.0.0.0 area 3
+ network 10.20.20.1 0.0.0.0 area 3
+ network 10.20.22.1 0.0.0.0 area 3
+ passive-interface Loopback0
+ passive-interface FastEthernet2/0
+ passive-interface FastEthernet3/0
+ area 3 range 10.20.16.0 255.255.252.0
+ area 3 range 10.20.20.0 255.255.252.0
+!
+ip classless
+line con 0
+ logging synchronous
+!
+end

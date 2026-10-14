@@ -48,6 +48,17 @@ or Next hop to follow the selected flow. Three graphs compare the selected
 strategy, maximum aggregation and the proposed plan. The graph library is
 bundled locally for offline use. See [the visual demo guide](docs/visual-demo.md).
 
+## Packet Tracer campus demo
+
+Open [Campus-Proposed.pkt](demos/packet-tracer/campus/Campus-Proposed.pkt)
+in Packet Tracer 9.0.1. The campus lab contains 10 routers, 15 switches and
+15 sample PCs, with the original 14 router links, OSPF areas/costs, and the
+exported VLSM and summary plans. Maximum-aggregation and hostel-link-down
+versions, router configs, and addressing tables are included alongside it.
+See [the Packet Tracer walkthrough](demos/packet-tracer/campus/START%20HERE.md).
+The proposed-plan diagram has opened successfully; live ping and failure
+outcomes are still awaiting verification in Packet Tracer.
+
 ## Strategies compared
 
 | Name | Allocation | Summaries |
