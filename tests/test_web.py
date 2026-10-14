@@ -66,3 +66,35 @@ def test_configs_endpoint(client):
     assert r.status_code in (200, 501)
     if r.status_code == 200:
         assert r.headers["content-type"] == "application/zip"
+
+
+@pytest.mark.parametrize("example", ["campus", "branch-office", "data-centre"])
+@pytest.mark.parametrize("protocol", ["ospf", "eigrp"])
+def test_guided_example_paths(client, example, protocol):
+    examples = client.get("/api/examples").json()["examples"]
+    selected = next(item for item in examples if item["name"] == example)
+    demo = selected["demo"]
+    assert selected["title"] and demo["description"]
+    payload = {"yaml": selected["yaml"], "protocol": protocol, "strategy": "maxagg",
+               "src": demo["source"], "subnet": demo["subnet"], "failed": demo["failed"]}
+    response = client.post("/api/simulate", json=payload)
+    assert response.status_code == 200, response.text
+    result = response.json()["contrast"]
+    assert result["maxagg"]["trace"]["status"] == "blackhole"
+    assert result["maxagg"]["lost"] > 0
+    assert result["fasp"]["trace"]["status"] == "delivered"
+    assert result["fasp"]["lost"] == 0
+    from fasplan.model import loads_topology
+    topology = loads_topology(selected["yaml"])
+    failed = {topology.resolve_link(link).id for link in demo["failed"]}
+    assert frozenset(failed) in {scenario.failed for scenario in topology.scenarios()}
+    for strategy in ("maxagg", "fasp"):
+        trace = result[strategy]["trace"]
+        assert trace["path"][0] == demo["source"]
+        for a, b in zip(trace["path"], trace["path"][1:]):
+            link = topology.link_between(a, b)
+            assert link is not None and link.id not in failed
+    assert result["fasp"]["trace"]["path"][-1] == topology.subnet(demo["subnet"]).router
+    payload["failed"] = []
+    normal = client.post("/api/simulate", json=payload).json()["contrast"]
+    assert all(normal[strategy]["trace"]["status"] == "delivered" for strategy in ("maxagg", "fasp"))

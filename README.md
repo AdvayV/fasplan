@@ -20,7 +20,7 @@ possible.
 | Routing simulator | `src/fasplan/routing.py` | converged OSPF (multi-area, area ranges) and EIGRP (interface summaries) forwarding tables + hop-by-hop forwarding |
 | Evaluation | `src/fasplan/evaluate.py`, `experiments.py`, `plots.py` | per-scenario loss / stretch / table size / churn, multi-topology campaigns, figures |
 | Topology generator | `src/fasplan/generator.py` | random campuses with low / mixed / high redundancy |
-| Web dashboard | `src/fasplan/web/` | interactive demo: fail links by clicking, see blackholes, export configs |
+| Web dashboard | `src/fasplan/web/` | three guided examples, packet-path playback, side-by-side strategy graphs, failure injection and config export |
 | Emulation testbed | `src/fasplan/testbed/` | containerlab + FRR / Cisco IOL configs, failure injection, loss/outage/control-traffic measurement |
 | Docs | `docs/method.md`, `docs/testbed.md`, `docs/presentation.md` | method write-up, testbed guide, slide + demo plan |
 
@@ -39,6 +39,14 @@ fasplan experiment -o results --seeds 20                # campaign + results/fig
 fasplan lab examples/campus.yaml --strategy fasp -o lab/fasp   # containerlab files (see docs/testbed.md)
 pytest
 ```
+
+## Visual demos
+
+Run `fasplan serve` and open <http://127.0.0.1:8000>. Choose Campus network,
+Branch office or Data centre, apply its example failure, and use Replay path
+or Next hop to follow the selected flow. Three graphs compare the selected
+strategy, maximum aggregation and the proposed plan. The graph library is
+bundled locally for offline use. See [the visual demo guide](docs/visual-demo.md).
 
 ## Strategies compared
 
