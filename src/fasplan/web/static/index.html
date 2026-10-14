@@ -30,6 +30,20 @@
   </div>
 </header>
 
+<section class="panel demo-panel" aria-label="Guided network examples">
+  <div class="panel-head"><h2>Follow a packet</h2><span class="muted">Choose a network, then compare the same flow in all three graphs.</span></div>
+  <div id="demoExamples" class="demo-examples"></div>
+  <p id="demoStory" class="note"></p>
+  <div class="flow-controls">
+    <label>Source router <select id="flowSource" aria-label="Source router"></select></label>
+    <label>Destination subnet <select id="flowDestination" aria-label="Destination subnet"></select></label>
+    <button id="traceFlow" class="primary">Show path</button>
+    <button id="demoFailure" class="ghost" disabled>Apply example failure</button>
+    <button id="playPath" class="ghost" disabled>Replay path</button>
+    <button id="stepPath" class="ghost" disabled>Next hop</button>
+  </div>
+  <p id="playbackStatus" class="note" aria-live="polite">Load an example to trace traffic.</p>
+</section>
 <main class="layout">
   <!-- left: editor -->
   <section class="panel editor">
@@ -37,7 +51,10 @@
       <h2>Topology</h2>
       <select id="examples" aria-label="Example topology"></select>
     </div>
-    <textarea id="yaml" spellcheck="false" aria-label="Topology YAML"></textarea>
+    <details class="yaml-editor"><summary>Edit network specification</summary>
+      <textarea id="yaml" spellcheck="false" aria-label="Topology YAML"></textarea>
+    </details>
+    <p class="hint">The example defines routers, links and subnets. Open the specification to customize it.</p>
     <div class="gen">
       <label>Generate seed <input id="genSeed" type="number" value="1" min="0"></label>
       <label>Buildings <input id="genB" type="number" value="4" min="2" max="10"></label>
@@ -56,13 +73,14 @@
   <!-- centre: graph -->
   <section class="panel graphwrap">
     <div class="panel-head">
-      <h2>Network <span class="muted small">click a link to fail it · click a router for its routing table</span></h2>
+      <h2>Selected strategy <span class="muted small">click a link to fail it · click a router for its routing table</span></h2>
       <div class="graph-actions">
         <button id="clearFail" class="ghost">Restore all links</button>
         <button id="fit" class="ghost">Fit</button>
       </div>
     </div>
-    <div id="cy"></div>
+    <div id="cy" role="img" aria-label="Network showing the selected forwarding path"></div>
+    <div id="routeWalk" class="route-walk" aria-live="polite"></div>
     <div class="legend" id="legend"></div>
     <div class="contrast" id="contrast"></div>
   </section>
@@ -74,6 +92,20 @@
   </section>
 </main>
 
+<section class="path-comparison" aria-label="Side by side strategy simulations">
+  <article class="panel route-panel">
+    <div class="panel-head"><h2>Maximum aggregation</h2><span id="maxaggOutcome" class="route-outcome"></span></div>
+    <p class="hint">One broad route per building. Follow where the selected flow stops.</p>
+    <div id="cy-maxagg" class="comparison-graph" role="img" aria-label="Maximum aggregation forwarding path"></div>
+    <div id="maxaggWalk" class="route-walk"></div>
+  </article>
+  <article class="panel route-panel">
+    <div class="panel-head"><h2>Proposed plan</h2><span id="faspOutcome" class="route-outcome"></span></div>
+    <p class="hint">Failure-aware summaries. Follow the usable path to the same subnet.</p>
+    <div id="cy-fasp" class="comparison-graph" role="img" aria-label="Proposed plan forwarding path"></div>
+    <div id="faspWalk" class="route-walk"></div>
+  </article>
+</section>
 <section class="panel tabs">
   <nav class="tabbar" role="tablist">
     <button role="tab" data-tab="cmp" class="on">Comparison</button>
@@ -90,6 +122,7 @@
 </section>
 
 <footer class="foot">fasplan · offline planner &amp; converged-state simulator · base paper: Shaikh et al., “An Efficient Algorithm for OSPF Subnet Aggregation”, ICNP 2003</footer>
+<script src="/static/paths.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

@@ -11,6 +11,8 @@ const S = {
   focus: null,        // highlighted lost pair / trace
   cy: null,
   busy: 0,
+  examples: [], demo: null, flow: null, paths: null,
+  simSeq: 0, analysisSeq: 0,
 };
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -57,22 +59,55 @@ function baseReq() {
 async function loadExamples() {
   try {
     const data = await (await api("/api/examples")).json();
+    S.examples = data.examples;
     const sel = $("#examples");
     sel.innerHTML = `<option value="">Examples…</option>` +
-      data.examples.map((e, i) => `<option value="${i}">${esc(e.name)}</option>`).join("");
-    sel.onchange = () => {
-      const e = data.examples[sel.value];
-      if (e) { $("#yaml").value = e.yaml; analyze(); }
-    };
+      data.examples.map((e, i) => `<option value="${i}">${esc(e.title || e.name)}</option>`).join("");
+    sel.onchange = () => {if (sel.value !== "") chooseExample(Number(sel.value));};
+    $("#demoExamples").innerHTML = data.examples.map((e, i) =>
+      `<button class="demo-choice ghost" data-example="${i}" aria-pressed="false">${esc(e.title || e.name)}</button>`).join("");
+    $$("[data-example]").forEach((button) => button.onclick = () => chooseExample(Number(button.dataset.example)));
     const first = data.examples.find((e) => e.name === "campus") || data.examples[0];
-    if (first) { $("#yaml").value = first.yaml; sel.value = data.examples.indexOf(first); analyze(); }
+    if (first) chooseExample(data.examples.indexOf(first));
   } catch (e) { status(e.message, "err"); }
+}
+
+function chooseExample(index) {
+  const example = S.examples[index];
+  if (!example) return;
+  S.demo = example.demo || null;
+  S.flow = S.demo ? { src: S.demo.source, subnet: S.demo.subnet } : null;
+  S.failed.clear();
+  $("#examples").value = index;
+  $("#yaml").value = example.yaml;
+  $("#demoStory").textContent = S.demo?.description || "Select a source and destination, then fail a link to explore forwarding.";
+  $$("[data-example]").forEach((button) => button.setAttribute("aria-pressed", String(Number(button.dataset.example) === index)));
+  analyze();
+}
+
+function fillFlows() {
+  const routers = S.analysis.graph.nodes.map((n) => n.id);
+  const subnets = S.analysis.graph.nodes.flatMap((n) => n.subnets.map((s) => s.name)).sort();
+  if (!S.flow || !routers.includes(S.flow.src) || !subnets.includes(S.flow.subnet)) {
+    const destination = subnets[0];
+    const owner = S.analysis.graph.nodes.find((n) => n.subnets.some((s) => s.name === destination));
+    S.flow = {src: routers.find((r) => r !== owner?.id) || routers[0], subnet: destination};
+  }
+  $("#flowSource").innerHTML = routers.map((r) => `<option>${esc(r)}</option>`).join("");
+  $("#flowDestination").innerHTML = subnets.map((s) => `<option>${esc(s)}</option>`).join("");
+  $("#flowSource").value = S.flow.src;
+  $("#flowDestination").value = S.flow.subnet;
+  const known = new Set(S.analysis.graph.edges.map((e) => e.id));
+  $("#demoFailure").disabled = !S.demo?.failed?.length || !S.demo.failed.every((id) => known.has(id));
 }
 
 async function generate() {
   try {
     const seed = $("#genSeed").value, b = $("#genB").value;
     const data = await (await api(`/api/generate?seed=${encodeURIComponent(seed)}&buildings=${encodeURIComponent(b)}`)).json();
+    S.demo = null; S.flow = null; S.failed.clear();
+    $("#demoStory").textContent = "Generated network. Choose a flow and click links to explore failures.";
+    $$("[data-example]").forEach((button) => button.setAttribute("aria-pressed", "false"));
     $("#yaml").value = data.yaml;
     $("#examples").value = "";
     analyze();
@@ -82,21 +117,27 @@ async function generate() {
 /* ------------------------------------------------------------ analyze */
 async function analyze() {
   $("#analyze").disabled = true;
+  const sequence = ++S.analysisSeq;
+  ++S.simSeq;
+  S.paths.stop();
   try {
-    S.analysis = await (await api("/api/analyze", baseReq())).json();
+    const analysis = await (await api("/api/analyze", baseReq())).json();
+    if (sequence !== S.analysisSeq) return;
+    S.analysis = analysis;
     const known = new Set(S.analysis.graph.edges.map((e) => e.id));
     S.failed = new Set([...S.failed].filter((x) => known.has(x)));
     S.router = null; S.focus = null;
     $("#topoName").textContent = `${S.analysis.name} · ${S.analysis.graph.nodes.length} routers · ` +
       `${S.analysis.graph.edges.length} links · ${S.analysis.scenarios.length} scenarios · ${S.analysis.protocol.toUpperCase()}`;
     fillStrategies();
+    fillFlows();
     buildGraph();
     renderComparison(); renderAddr(); renderWhy(); renderScenarios(); renderExport();
     await runSim();
   } catch (e) {
     status(e.message, "err");
   } finally {
-    $("#analyze").disabled = false;
+    if (sequence === S.analysisSeq) $("#analyze").disabled = false;
   }
 }
 
@@ -130,7 +171,7 @@ function layoutPositions(graph) {
     (groups[key] = groups[key] || []).push(n);
   });
   const pos = {};
-  const DX = 120, DY = 120, GAP = 60;
+  const DX = 150, DY = 210, GAP = 85;
   let x = 0;
   const keys = Object.keys(groups).filter((k) => k !== "__bb")
     .sort((a, b) => parseInt(a) - parseInt(b) || a.localeCompare(b));
@@ -141,17 +182,17 @@ function layoutPositions(graph) {
     for (const [d, r] of Object.entries(rows)) {
       r.sort((a, b) => a.id.localeCompare(b.id));
       const off = (width - r.length) * DX / 2;
-      r.forEach((n, i) => (pos[n.id] = { x: x + off + i * DX, y: Number(d) * DY }));
+      r.forEach((n, i) => (pos[n.id] = { x: x + off + i * DX, y: Number(d) * DY + (r.length === 3 && n.role === "distribution" && i === 1 ? 95 : 0) }));
     }
     x += width * DX + GAP;
   }
   const total = Math.max(x - GAP, DX);
   const bb = (groups.__bb || []).sort((a, b) => a.id.localeCompare(b.id));
   const bbRows = {};
-  bb.forEach((n) => (bbRows[depth[n.id]] = bbRows[depth[n.id]] || []).push(n));
+  bb.forEach((n) => {const row = n.role === "core" ? 0 : 1; (bbRows[row] = bbRows[row] || []).push(n);});
   for (const [d, r] of Object.entries(bbRows)) {
     const span = (r.length - 1) * DX * 1.6;
-    r.forEach((n, i) => (pos[n.id] = { x: total / 2 - DX / 2 - span / 2 + i * DX * 1.6, y: Number(d) * DY - 30 }));
+    r.forEach((n, i) => (pos[n.id] = { x: total / 2 - DX / 2 - span / 2 + i * DX * 1.6, y: Number(d) * 110 - 60 }));
   }
   return pos;
 }
@@ -161,8 +202,8 @@ function cyStyle() {
     warn = css("--warn"), accent = css("--accent"), panel = css("--panel"), panel2 = css("--panel-2");
   return [
     { selector: "node", style: {
-      "background-color": "data(color)", label: "data(label)", color: ink, "font-size": 11,
-      "text-valign": "bottom", "text-margin-y": 4, "text-wrap": "wrap", width: 30, height: 30,
+      "background-color": "data(color)", label: "data(label)", color: ink, "font-size": 13,
+      "text-valign": "bottom", "text-margin-y": 4, "text-wrap": "wrap", width: 36, height: 36,
       "border-width": 2, "border-color": panel, "text-background-color": panel2,
       "text-background-opacity": 0.85, "text-background-padding": 2, "text-background-shape": "roundrectangle",
     } },
@@ -189,6 +230,14 @@ function cyStyle() {
     { selector: "node.onpath", style: { "border-color": accent, "border-width": 4 } },
     { selector: "edge:selected", style: { "overlay-opacity": 0.08 } },
     { selector: "node.dim, edge.dim", style: { opacity: 0.35 } },
+    { selector: "edge.route-forward", style: {"target-arrow-shape": "triangle", "target-arrow-color": accent, "arrow-scale": 1.3} },
+    { selector: "edge.route-reverse", style: {"source-arrow-shape": "triangle", "source-arrow-color": accent, "arrow-scale": 1.3} },
+    { selector: "node.route-source", style: {"border-color": accent, "border-width": 6} },
+    { selector: "node.route-destination", style: {"border-color": css("--good"), "border-width": 6} },
+    { selector: "node.route-stop", style: {"background-color": bad, "border-color": bad, "border-width": 6} },
+    { selector: "node.packet", style: {label: "", width: 15, height: 15, shape: "ellipse", "background-color": warn, "border-color": panel, "border-width": 2, "z-index": 100, events: "no"} },
+    { selector: "node.packet.delivered", style: {"background-color": css("--good")} },
+    { selector: "node.packet.dropped", style: {"background-color": bad} },
     { selector: "core", style: { "selection-box-color": line } },
   ];
 }
@@ -205,7 +254,7 @@ function buildGraph() {
       els.push({ group: "nodes", data: { id: pid, label: n.area === 0 ? "Backbone · area 0" : `${n.building} · area ${n.area}`, color: areaColor(n.area) } });
     }
     const lans = n.subnets.length ? `\n${n.subnets.length} LAN${n.subnets.length > 1 ? "s" : ""}` : "";
-    els.push({ group: "nodes", data: { id: n.id, parent: pid, label: n.id + lans, color: areaColor(n.area), role: n.role, area: n.area }, position: pos[n.id] });
+    els.push({ group: "nodes", data: { id: n.id, parent: pid, label: n.id + lans, baseLabel: n.id + lans, color: areaColor(n.area), role: n.role, area: n.area }, position: pos[n.id] });
   });
   g.edges.forEach((e) => {
     els.push({ group: "edges", data: { id: e.id, source: e.source, target: e.target, cost: e.cost, area: e.area, color: e.area === 0 ? css("--a0") : areaColor(e.area) } });
@@ -227,7 +276,7 @@ function buildGraph() {
     S.router = S.router === n.id() ? null : n.id();
     renderSide(); highlight();
   });
-  S.cy.on("tap", (ev) => { if (ev.target === S.cy) { S.router = null; S.focus = null; renderSide(); highlight(); } });
+  S.cy.on("tap", (ev) => { if (ev.target === S.cy) { S.router = null; renderSide(); highlight(); } });
   S.cy.fit(undefined, 30);
   renderLegend();
 }
@@ -238,6 +287,8 @@ function renderLegend() {
     .sort((a, b) => a[0] - b[0])
     .map(([a, b]) => `<span><i style="background:${areaColor(a)}"></i>${esc(b)} (area ${a})</span>`);
   items.push(`<span><i class="dash"></i>failed link</span>`);
+  items.push(`<span><i style="background:${css("--accent")}"></i>arrows show forwarding direction</span>`);
+  items.push(`<span><i style="background:${css("--warn")}"></i>packet position during replay</span>`);
   items.push(`<span><i style="background:${css("--bad")}"></i>drops traffic (discard route)</span>`);
   items.push(`<span><i style="background:transparent;border:3px solid ${css("--warn")}"></i>source losing traffic</span>`);
   $("#legend").innerHTML = items.join("");
@@ -279,15 +330,22 @@ function highlight() {
 /* ------------------------------------------------------------ simulate */
 async function runSim(trace) {
   if (!S.analysis) return;
+  const sequence = ++S.simSeq;
+  S.paths.stop();
+  if (trace) S.flow = {src: trace.src, subnet: trace.subnet};
   try {
-    const body = { ...baseReq(), strategy: S.strategy, failed: [...S.failed] };
-    if (trace) Object.assign(body, trace);
-    S.sim = await (await api("/api/simulate", body)).json();
-    if (trace && S.sim.selected.trace) {
+    const body = { ...baseReq(), strategy: S.strategy, failed: [...S.failed], ...S.flow };
+    const simulation = await (await api("/api/simulate", body)).json();
+    if (sequence !== S.simSeq) return;
+    S.sim = simulation;
+    if (S.sim.selected.trace) {
       const t = S.sim.selected.trace;
       S.focus = { path: t.path, flatPath: t.flat.path, trace: t };
     }
+    $("#flowSource").value = S.flow.src;
+    $("#flowDestination").value = S.flow.subnet;
     renderContrast(); renderSide(); highlight();
+    S.paths.update();
   } catch (e) { status(e.message, "err"); }
 }
 
@@ -349,8 +407,8 @@ function renderSide() {
   $$(".lost li", side).forEach((li) => (li.onclick = () => {
     const i = Number(li.dataset.i);
     const p = sel.lost_pairs[i];
-    S.focus = S.focus && S.focus.i === i ? null : { i, path: p.path };
-    renderSide(); highlight();
+    S.router = null;
+    runSim({src: p.src, subnet: p.subnet});
   }));
 }
 
@@ -494,6 +552,7 @@ function saveBlob(blob, name) {
 }
 
 function setStrategy(s) {
+  S.router = null;
   S.strategy = s;
   $("#strategy").value = s;
   S.focus = null;
@@ -503,6 +562,14 @@ function setStrategy(s) {
 
 /* ------------------------------------------------------------ wiring */
 function init() {
+  S.paths = new FasplanPaths();
+  const traceSelectedFlow = () => {S.router = null; runSim({src: $("#flowSource").value, subnet: $("#flowDestination").value});};
+  $("#traceFlow").onclick = traceSelectedFlow;
+  $("#flowSource").onchange = traceSelectedFlow;
+  $("#flowDestination").onchange = traceSelectedFlow;
+  $("#demoFailure").onclick = () => {S.failed = new Set(S.demo.failed); S.router = null; runSim();};
+  $("#playPath").onclick = () => S.paths.play();
+  $("#stepPath").onclick = () => S.paths.next();
   $$(".seg button").forEach((b) => (b.onclick = () => {
     if (S.protocol === b.dataset.proto) return;
     S.protocol = b.dataset.proto;
@@ -512,7 +579,7 @@ function init() {
   $("#strategy").onchange = (e) => setStrategy(e.target.value);
   $("#analyze").onclick = analyze;
   $("#genBtn").onclick = generate;
-  $("#clearFail").onclick = () => { S.failed.clear(); S.focus = null; runSim(); };
+  $("#clearFail").onclick = () => { S.failed.clear(); S.router = null; S.focus = null; runSim(); };
   $("#fit").onclick = () => S.cy && S.cy.fit(undefined, 30);
   const sync = () => { $("#tnOut").textContent = Number($("#tauN").value).toFixed(2); $("#tfOut").textContent = Number($("#tauF").value).toFixed(2); };
   $("#tauN").oninput = sync; $("#tauF").oninput = sync;
@@ -531,7 +598,7 @@ function init() {
     $$(".tab").forEach((t) => t.classList.toggle("on", t.id === "tab-" + b.dataset.tab));
   }));
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    if (S.analysis) { buildGraph(); highlight(); renderScenarios(); }
+    if (S.analysis) { buildGraph(); highlight(); S.paths.update(); renderScenarios(); }
   });
   if (typeof cytoscape === "undefined") status("Cytoscape failed to load (offline?)", "err");
   loadExamples();
