@@ -29,3 +29,19 @@ and the proposed plan delivers it. These checks run under OSPF and EIGRP in test
 
 The graph library is bundled locally at its existing pinned version, so the dashboard no longer
 requires a CDN connection. Its embedded MIT licence and attribution are retained.
+
+
+## Graph view controls
+
+Each graph has + / − buttons, a zoom percentage, Fit network, and Expand.
+Expand opens a larger view with Replay path and Next hop controls; press Esc
+or Close to return. Select a hop in the
+expanded route strip to center that router. On narrow screens, the expanded
+view starts zoomed in so router names stay readable; use Fit network to see
+the entire topology, or drag the background to pan.
+
+The graph canvases render at least twice the display resolution. Larger labels,
+stronger contrast and a wider workspace make routes easier to follow. The
+comparison graphs stack on ordinary laptop screens and sit alongside each
+other on wide displays. Topology editing, generation and path limits are under
+the collapsible Network settings panel.

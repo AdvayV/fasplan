@@ -197,31 +197,112 @@ function layoutPositions(graph) {
   return pos;
 }
 
+function graphRenderingOptions() {
+  return {pixelRatio: Math.min(3, Math.max(2, window.devicePixelRatio || 1)),
+    textureOnViewport: false, motionBlur: false, hideEdgesOnViewport: false};
+}
+
+function fitGraph(cy) {
+  if (!cy || cy.destroyed()) return;
+  cy.resize();
+  cy.fit(cy.elements().not(".packet"), cy.width() < 500 ? 22 : 44);
+}
+
+function fitExpandedGraph(cy) {
+  fitGraph(cy);
+  if (cy.width() < 500) {
+    cy.zoom(Math.max(0.7, cy.zoom()));
+    const view = S.paths.views.find((v) => v.cy === cy);
+    if (view?.trace.path.length) cy.center(cy.getElementById(view.trace.path[0]));
+  }
+}
+
+function setPlaybackLabel(label) {
+  $$("#playPath, [data-playback='play']").forEach((button) => {button.textContent = label;});
+}
+
+function graphFor(id) {
+  return id === "cy" ? S.cy : S.paths?.mini[id.replace("cy-", "")];
+}
+
+let expandedGraph = null;
+function updateExpandedRoute() {
+  if (!expandedGraph) return;
+  const walk = {cy: "routeWalk", "cy-maxagg": "maxaggWalk", "cy-fasp": "faspWalk"}[expandedGraph.id];
+  const focused = document.activeElement.closest?.("#expandedRoute .hop");
+  const focusIndex = focused?.dataset.hop;
+  $("#expandedRoute").innerHTML = $("#" + walk).innerHTML;
+  $$("#expandedRoute .hop").forEach((hop) => {
+    hop.tabIndex = 0;
+    hop.setAttribute("role", "button");
+    hop.setAttribute("aria-label", "Center on " + hop.querySelector("b").textContent);
+    hop.title = "Center this router in the graph";
+  });
+  if (focusIndex !== undefined) $(`#expandedRoute [data-hop="${focusIndex}"]`)?.focus({preventScroll: true});
+}
+
+function expandGraph(id, opener) {
+  if (!graphFor(id)) return;
+  const cy = graphFor(id), canvas = $("#" + id), placeholder = document.createComment("graph position");
+  cy.unmount();
+  canvas.before(placeholder);
+  expandedGraph = {id, opener, placeholder, canvas};
+  $("#expandedGraphTitle").textContent = {cy: "Selected strategy", "cy-maxagg": "Maximum aggregation", "cy-fasp": "Proposed plan"}[id];
+  $("#expandedGraphSlot").append(canvas);
+  document.body.classList.add("graph-expanded");
+  updateExpandedRoute();
+  $("#graphDialog").showModal();
+  // Remount after moving the container: Cytoscape observes DOM removal and
+  // stops its renderer, so resizing alone leaves a frozen canvas behind.
+  cy.mount(canvas);
+  requestAnimationFrame(() => fitExpandedGraph(cy));
+}
+
+function changeGraphView(id, action, button) {
+  const cy = graphFor(id);
+  if (!cy) return;
+  if (action === "expand") {expandGraph(id, button); return;}
+  if (action === "fit") {fitGraph(cy); return;}
+  const factor = action === "in" ? 1.25 : 0.8;
+  cy.zoom({level: Math.max(cy.minZoom(), Math.min(cy.maxZoom(), cy.zoom() * factor)),
+    renderedPosition: {x: cy.width() / 2, y: cy.height() / 2}});
+}
+
+function watchGraphZoom(cy, id) {
+  const update = () => {
+    const output = $(`[data-graph-zoom="${id}"]`);
+    if (output) output.value = Math.round(cy.zoom() * 100) + "%";
+  };
+  cy.on("zoom", update); update();
+}
+
 function cyStyle() {
   const ink = css("--ink"), muted = css("--muted"), line = css("--line"), bad = css("--bad"),
     warn = css("--warn"), accent = css("--accent"), panel = css("--panel"), panel2 = css("--panel-2");
   return [
     { selector: "node", style: {
-      "background-color": "data(color)", label: "data(label)", color: ink, "font-size": 13,
-      "text-valign": "bottom", "text-margin-y": 4, "text-wrap": "wrap", width: 36, height: 36,
-      "border-width": 2, "border-color": panel, "text-background-color": panel2,
-      "text-background-opacity": 0.85, "text-background-padding": 2, "text-background-shape": "roundrectangle",
+      "background-color": "data(color)", label: "data(label)", color: ink, "font-size": 20,
+      "font-family": "Segoe UI, system-ui, sans-serif", "font-weight": 600, "min-zoomed-font-size": 0,
+      "text-valign": "bottom", "text-margin-y": 8, "text-wrap": "wrap", width: 46, height: 46,
+      "border-width": 3, "border-color": panel, "text-background-color": panel,
+      "text-background-opacity": 1, "text-background-padding": 4, "text-background-shape": "roundrectangle",
     } },
-    { selector: "node[role = 'core']", style: { shape: "round-rectangle", width: 38, height: 30 } },
-    { selector: "node[role = 'distribution']", style: { shape: "round-diamond", width: 34, height: 34 } },
+    { selector: "node[role = 'core']", style: { shape: "round-rectangle", width: 52, height: 42 } },
+    { selector: "node[role = 'distribution']", style: { shape: "round-diamond", width: 46, height: 46 } },
     { selector: ":parent", style: {
-      "background-color": "data(color)", "background-opacity": 0.07, "border-color": "data(color)",
-      "border-width": 1, "border-style": "dashed", label: "data(label)", "text-valign": "top",
-      "text-halign": "center", "font-size": 12, "font-weight": 600, color: muted, padding: 22,
-      shape: "round-rectangle", "text-background-opacity": 0,
+      "background-color": "data(color)", "background-opacity": 0.045, "border-color": "data(color)",
+      "border-width": 1.5, "border-style": "solid", label: "data(label)", "text-valign": "top",
+      "text-halign": "center", "font-size": 18, "font-weight": 600, color: ink, padding: 28,
+      shape: "round-rectangle", "text-background-opacity": 1, "text-background-color": panel, "text-margin-y": -8,
     } },
     { selector: "edge", style: {
-      width: 2.5, "line-color": "data(color)", label: "data(cost)", "font-size": 10, color: muted,
-      "text-background-color": panel, "text-background-opacity": 1, "text-background-padding": 1.5,
+      width: 2.5, "line-color": css("--graph-line"), label: "data(cost)", "font-size": 14, color: ink,
+      "font-weight": 600, "font-family": "Segoe UI, system-ui, sans-serif",
+      "text-background-color": panel, "text-background-opacity": 1, "text-background-padding": 4, "text-background-shape": "roundrectangle",
       "curve-style": "bezier", opacity: 0.9,
     } },
     { selector: "edge[area = 0]", style: { width: 3.5 } },
-    { selector: "edge.failed", style: { "line-color": bad, "line-style": "dashed", opacity: 0.85, color: bad, width: 3 } },
+    { selector: "edge.failed", style: { "line-color": bad, "line-style": "dashed", opacity: 1, color: bad, width: 4 } },
     { selector: "edge.onpath", style: { "line-color": accent, width: 6, opacity: 1, "z-index": 10 } },
     { selector: "edge.flatpath", style: { "line-color": css("--good"), width: 5, "line-style": "dotted", opacity: 1 } },
     { selector: "node.lostsrc", style: { "border-color": warn, "border-width": 4 } },
@@ -261,7 +342,7 @@ function buildGraph() {
   });
   if (S.cy) S.cy.destroy();
   S.cy = cytoscape({
-    container: $("#cy"), elements: els, style: cyStyle(), layout: { name: "preset", padding: 30 },
+    ...graphRenderingOptions(), container: $("#cy"), elements: els, style: cyStyle(), layout: { name: "preset", padding: 30 },
     wheelSensitivity: 0.25, minZoom: 0.2, maxZoom: 3, autoungrabify: false,
   });
   S.cy.on("tap", "edge", (ev) => {
@@ -277,7 +358,8 @@ function buildGraph() {
     renderSide(); highlight();
   });
   S.cy.on("tap", (ev) => { if (ev.target === S.cy) { S.router = null; renderSide(); highlight(); } });
-  S.cy.fit(undefined, 30);
+  fitGraph(S.cy);
+  watchGraphZoom(S.cy, "cy");
   renderLegend();
 }
 
@@ -570,6 +652,8 @@ function init() {
   $("#demoFailure").onclick = () => {S.failed = new Set(S.demo.failed); S.router = null; runSim();};
   $("#playPath").onclick = () => S.paths.play();
   $("#stepPath").onclick = () => S.paths.next();
+  $("[data-playback='play']").onclick = () => S.paths.play();
+  $("[data-playback='next']").onclick = () => S.paths.next();
   $$(".seg button").forEach((b) => (b.onclick = () => {
     if (S.protocol === b.dataset.proto) return;
     S.protocol = b.dataset.proto;
@@ -580,7 +664,32 @@ function init() {
   $("#analyze").onclick = analyze;
   $("#genBtn").onclick = generate;
   $("#clearFail").onclick = () => { S.failed.clear(); S.router = null; S.focus = null; runSim(); };
-  $("#fit").onclick = () => S.cy && S.cy.fit(undefined, 30);
+  $$('[data-graph-action]').forEach((button) => button.onclick = () => changeGraphView(button.dataset.graph, button.dataset.graphAction, button));
+  $$('[data-expanded-action]').forEach((button) => button.onclick = () => expandedGraph && changeGraphView(expandedGraph.id, button.dataset.expandedAction, button));
+  $("#closeGraphDialog").onclick = () => $("#graphDialog").close();
+  $("#graphDialog").addEventListener("close", () => {
+    if (!expandedGraph) return;
+    const {id, canvas, placeholder, opener} = expandedGraph;
+    const cy = graphFor(id);
+    cy?.unmount();
+    placeholder.replaceWith(canvas);
+    cy?.mount(canvas);
+    expandedGraph = null;
+    document.body.classList.remove("graph-expanded");
+    requestAnimationFrame(() => fitGraph(graphFor(id)));
+    opener?.focus();
+  });
+  const centerExpandedHop = (event) => {
+    if (!expandedGraph || (event.type === "keydown" && !["Enter", " "].includes(event.key))) return;
+    const hop = event.target.closest(".hop");
+    if (!hop) return;
+    event.preventDefault();
+    const cy = graphFor(expandedGraph.id), view = S.paths.views.find((v) => v.cy === cy);
+    const router = view?.trace.path[Number(hop.dataset.hop)];
+    if (router) {cy.zoom(Math.max(0.75, cy.zoom())); cy.center(cy.getElementById(router));}
+  };
+  $("#expandedRoute").onclick = centerExpandedHop;
+  $("#expandedRoute").onkeydown = centerExpandedHop;
   const sync = () => { $("#tnOut").textContent = Number($("#tauN").value).toFixed(2); $("#tfOut").textContent = Number($("#tauF").value).toFixed(2); };
   $("#tauN").oninput = sync; $("#tauF").oninput = sync;
   $("#tauN").onchange = analyze; $("#tauF").onchange = analyze;

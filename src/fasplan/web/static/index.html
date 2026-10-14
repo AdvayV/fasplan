@@ -45,8 +45,36 @@
   <p id="playbackStatus" class="note" aria-live="polite">Load an example to trace traffic.</p>
 </section>
 <main class="layout">
-  <!-- left: editor -->
-  <section class="panel editor">
+  <!-- centre: graph -->
+  <section class="panel graphwrap">
+    <div class="panel-head">
+      <div><p class="eyebrow">Live network</p><h2>Selected strategy</h2></div>
+      <button id="clearFail" class="ghost">Restore all links</button>
+    </div>
+    <div class="graph-topline"><p class="hint">Click a link to fail it. Click a router to inspect its routing table.</p><div class="graph-toolbar" aria-label="selected strategy view controls">
+      <div class="zoom-controls">
+        <button class="ghost icon-button" data-graph="cy" data-graph-action="out" aria-label="Zoom out on selected strategy" title="Zoom out">−</button>
+        <output data-graph-zoom="cy" aria-label="selected strategy zoom">100%</output>
+        <button class="ghost icon-button" data-graph="cy" data-graph-action="in" aria-label="Zoom in on selected strategy" title="Zoom in">+</button>
+      </div>
+      <button id="fit" class="ghost" data-graph="cy" data-graph-action="fit">Fit network</button>
+      <button class="ghost" data-graph="cy" data-graph-action="expand" aria-label="Expand selected strategy">Expand ↗</button>
+    </div></div>
+    <div id="cy" role="img" aria-label="Network showing the selected forwarding path"></div>
+    <div id="routeWalk" class="route-walk" aria-live="polite"></div>
+    <div class="legend" id="legend"></div>
+    <div class="contrast" id="contrast"></div>
+  </section>
+
+  <!-- right: details -->
+  <section class="panel side">
+    <div class="panel-head"><h2 id="sideTitle">Failure impact</h2></div>
+    <div id="side" class="side-body"><p class="muted">Run an analysis, then fail links in the graph.</p></div>
+  </section>
+  <!-- network settings -->
+  <details class="panel editor">
+    <summary><span>Network settings</span><span class="muted small">Topology, generator and path limits</span></summary>
+    <div class="settings-body">
     <div class="panel-head">
       <h2>Topology</h2>
       <select id="examples" aria-label="Example topology"></select>
@@ -68,40 +96,39 @@
       <p class="hint">Maximum allowed path-cost stretch for a summary, in normal operation and under failures.</p>
     </div>
     <button id="analyze" class="primary">Analyze</button>
-  </section>
-
-  <!-- centre: graph -->
-  <section class="panel graphwrap">
-    <div class="panel-head">
-      <h2>Selected strategy <span class="muted small">click a link to fail it · click a router for its routing table</span></h2>
-      <div class="graph-actions">
-        <button id="clearFail" class="ghost">Restore all links</button>
-        <button id="fit" class="ghost">Fit</button>
-      </div>
     </div>
-    <div id="cy" role="img" aria-label="Network showing the selected forwarding path"></div>
-    <div id="routeWalk" class="route-walk" aria-live="polite"></div>
-    <div class="legend" id="legend"></div>
-    <div class="contrast" id="contrast"></div>
-  </section>
+  </details>
 
-  <!-- right: details -->
-  <section class="panel side">
-    <div class="panel-head"><h2 id="sideTitle">Failure impact</h2></div>
-    <div id="side" class="side-body"><p class="muted">Run an analysis, then fail links in the graph.</p></div>
-  </section>
 </main>
 
 <section class="path-comparison" aria-label="Side by side strategy simulations">
   <article class="panel route-panel">
-    <div class="panel-head"><h2>Maximum aggregation</h2><span id="maxaggOutcome" class="route-outcome"></span></div>
+    <div class="panel-head"><div><p class="eyebrow">Baseline</p><h2>Maximum aggregation</h2></div><span id="maxaggOutcome" class="route-outcome"></span></div>
     <p class="hint">One broad route per building. Follow where the selected flow stops.</p>
+    <div class="graph-toolbar" aria-label="maximum aggregation view controls">
+      <div class="zoom-controls">
+        <button class="ghost icon-button" data-graph="cy-maxagg" data-graph-action="out" aria-label="Zoom out on maximum aggregation" title="Zoom out">−</button>
+        <output data-graph-zoom="cy-maxagg" aria-label="maximum aggregation zoom">100%</output>
+        <button class="ghost icon-button" data-graph="cy-maxagg" data-graph-action="in" aria-label="Zoom in on maximum aggregation" title="Zoom in">+</button>
+      </div>
+      <button class="ghost" data-graph="cy-maxagg" data-graph-action="fit">Fit network</button>
+      <button class="ghost" data-graph="cy-maxagg" data-graph-action="expand" aria-label="Expand maximum aggregation">Expand ↗</button>
+    </div>
     <div id="cy-maxagg" class="comparison-graph" role="img" aria-label="Maximum aggregation forwarding path"></div>
     <div id="maxaggWalk" class="route-walk"></div>
   </article>
   <article class="panel route-panel">
-    <div class="panel-head"><h2>Proposed plan</h2><span id="faspOutcome" class="route-outcome"></span></div>
+    <div class="panel-head"><div><p class="eyebrow">Failure-aware design</p><h2>Proposed plan</h2></div><span id="faspOutcome" class="route-outcome"></span></div>
     <p class="hint">Failure-aware summaries. Follow the usable path to the same subnet.</p>
+    <div class="graph-toolbar" aria-label="proposed plan view controls">
+      <div class="zoom-controls">
+        <button class="ghost icon-button" data-graph="cy-fasp" data-graph-action="out" aria-label="Zoom out on proposed plan" title="Zoom out">−</button>
+        <output data-graph-zoom="cy-fasp" aria-label="proposed plan zoom">100%</output>
+        <button class="ghost icon-button" data-graph="cy-fasp" data-graph-action="in" aria-label="Zoom in on proposed plan" title="Zoom in">+</button>
+      </div>
+      <button class="ghost" data-graph="cy-fasp" data-graph-action="fit">Fit network</button>
+      <button class="ghost" data-graph="cy-fasp" data-graph-action="expand" aria-label="Expand proposed plan">Expand ↗</button>
+    </div>
     <div id="cy-fasp" class="comparison-graph" role="img" aria-label="Proposed plan forwarding path"></div>
     <div id="faspWalk" class="route-walk"></div>
   </article>
@@ -121,6 +148,25 @@
   <div class="tab" id="tab-exp"></div>
 </section>
 
+<dialog id="graphDialog" class="graph-dialog" aria-labelledby="expandedGraphTitle">
+  <div class="dialog-head">
+    <div><p class="eyebrow">Expanded network</p><h2 id="expandedGraphTitle">Network</h2></div>
+    <div class="graph-toolbar">
+      <button class="ghost icon-button" data-expanded-action="out" aria-label="Zoom out on expanded graph">−</button>
+      <button class="ghost icon-button" data-expanded-action="in" aria-label="Zoom in on expanded graph">+</button>
+      <button class="ghost" data-expanded-action="fit">Fit network</button>
+      <button id="closeGraphDialog" class="primary">Close</button>
+    </div>
+  </div>
+  <div id="expandedGraphSlot" class="expanded-graph-slot"></div>
+  <div class="expanded-playback">
+    <button class="primary" data-playback="play">Replay path</button>
+    <button class="ghost" data-playback="next">Next hop</button>
+    <span class="hint">Replay the same flow across all three plans.</span>
+  </div>
+  <div id="expandedRoute" class="route-walk"></div>
+  <p class="hint">Select a hop to center its router. Use + / − to zoom, drag to pan, or press Esc to return.</p>
+</dialog>
 <footer class="foot">fasplan · offline planner &amp; converged-state simulator · base paper: Shaikh et al., “An Efficient Algorithm for OSPF Subnet Aggregation”, ICNP 2003</footer>
 <script src="/static/paths.js"></script>
 <script src="/static/app.js"></script>

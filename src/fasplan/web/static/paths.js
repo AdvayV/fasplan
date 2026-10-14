@@ -3,15 +3,18 @@
 class FasplanPaths {
   constructor() {
     this.views = []; this.mini = {}; this.graphKey = ""; this.timer = null; this.step = 0;
-    this.resizeObserver = new ResizeObserver(() => {
-      this.views.forEach((view) => {view.cy.resize(); view.cy.fit(undefined, 30);});
+    this.resizeObserver = new ResizeObserver((entries) => {
+      entries.forEach(({target}) => {
+        const cy = graphFor(target.id);
+        if (cy) requestAnimationFrame(() => expandedGraph?.id === target.id ? fitExpandedGraph(cy) : fitGraph(cy));
+      });
     });
     ["cy", "cy-maxagg", "cy-fasp"].forEach((id) => this.resizeObserver.observe($("#" + id)));
   }
   stop() {
     clearInterval(this.timer); this.timer = null;
     this.views.forEach((view) => view.cy?.getElementById("visual-packet").stop());
-    $("#playPath").textContent = "Replay path";
+    setPlaybackLabel("Replay path");
   }
   update() {
     this.stop();
@@ -24,10 +27,11 @@ class FasplanPaths {
         group: e.group(), data: {...e.data(), label: e.data("baseLabel") || e.data("label")}, position: {...e.position()},
       }));
       for (const strategy of ["maxagg", "fasp"]) {
-        this.mini[strategy] = cytoscape({container: $("#cy-" + strategy), elements: JSON.parse(JSON.stringify(elements)),
+        this.mini[strategy] = cytoscape({...graphRenderingOptions(), container: $("#cy-" + strategy), elements: JSON.parse(JSON.stringify(elements)),
           style: cyStyle(), layout: {name: "preset", padding: 30}, autoungrabify: true,
           wheelSensitivity: 0.2, minZoom: 0.2, maxZoom: 3});
-        this.mini[strategy].fit(undefined, 30);
+        fitGraph(this.mini[strategy]);
+        watchGraphZoom(this.mini[strategy], "cy-" + strategy);
       }
       this.graphKey = key;
     }
@@ -51,6 +55,7 @@ class FasplanPaths {
       const container = view.cy.container();
       container.setAttribute("aria-label", view.label + ": " + t.path.join(" to ") + ". " + outcome);
     }
+    updateExpandedRoute();
     this.step = 0;
     this.move(false);
     $("#playPath").disabled = !this.views.length;
@@ -69,7 +74,7 @@ class FasplanPaths {
         const node = cy.getElementById(router);
         node.addClass("onpath");
         const at = path.map((r, index) => r === router ? index + 1 : null).filter(Boolean);
-        node.data("label", "Hop " + at.join("/") + " · " + router);
+        node.data("label", router + "\nHop " + at.join("/"));
       });
       for (let i = 0; i + 1 < path.length; i++) {
         const edge = cy.edges().filter((e) => [path[i], path[i + 1]].includes(e.data("source")) && [path[i], path[i + 1]].includes(e.data("target")));
@@ -96,6 +101,7 @@ class FasplanPaths {
       else packet.position({...target.position()});
       $$("#" + view.walk + " .hop").forEach((hop) => hop.classList.toggle("active", Number(hop.dataset.hop) === index));
     }
+    updateExpandedRoute();
   }
   maxStep() { return Math.max(0, ...this.views.map((v) => v.trace.path.length - 1)); }
   next() {
@@ -113,12 +119,12 @@ class FasplanPaths {
     if (this.timer) {this.stop(); return;}
     this.step = 0; this.move(false); this.describe();
     if (!this.maxStep()) return;
-    $("#playPath").textContent = "Pause replay";
+    setPlaybackLabel("Pause replay");
     this.timer = setInterval(() => {
       this.step++; this.move(true); this.describe();
       if (this.step >= this.maxStep()) {
         clearInterval(this.timer); this.timer = null;
-        $("#playPath").textContent = "Replay path";
+        setPlaybackLabel("Replay path");
       }
     }, 850);
   }
