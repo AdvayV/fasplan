@@ -12,6 +12,10 @@ addressing (VLSM) and summaries so that this cannot happen in the failure
 scenarios you specify, while keeping as much of the table reduction as
 possible.
 
+## Contributions in this fork
+
+This fork builds on [Abhyuday's upstream planner, simulator, and experiments](https://github.com/abhyuday404/fasplan). Advay added guided branch-office and data-centre examples, bundled the dashboard graph library for offline use, added packet-path playback and side-by-side forwarding comparisons, tested guided failures, and built Packet Tracer campus scenarios. The [upstream pull request](https://github.com/abhyuday404/fasplan/pull/1) shows those changes.
+
 ## What's in the box
 
 | Component | Path | What it does |
@@ -26,9 +30,13 @@ possible.
 
 ## Quick start
 
+Requires Git, Python 3.10 or later, and uv.
+
 ```bash
-cd ~/Projects/fasplan
-uv venv && uv pip install -e '.[web,analysis,dev]'
+git clone https://github.com/AdvayV/fasplan.git
+cd fasplan
+uv venv
+uv pip install -e '.[web,analysis,dev]'
 source .venv/bin/activate
 
 fasplan plan examples/campus.yaml -o out/plan          # allocation.csv, plan.md, plan.json
@@ -37,8 +45,10 @@ fasplan scenario examples/campus.yaml --strategy maxagg --fail c-d1--c-d2 --rout
 fasplan serve                                           # dashboard on http://127.0.0.1:8000
 fasplan experiment -o results --seeds 20                # campaign + results/figures/
 fasplan lab examples/campus.yaml --strategy fasp -o lab/fasp   # containerlab files (see docs/testbed.md)
-pytest
+python -m pytest
 ```
+
+In Windows PowerShell, activate the environment with `.\.venv\Scripts\Activate.ps1` in place of the `source` command.
 
 ## Visual demos
 
@@ -56,7 +66,7 @@ in Packet Tracer 9.0.1. The campus lab contains 10 routers, 15 switches and
 exported VLSM and summary plans. Maximum-aggregation and hostel-link-down
 versions, router configs, and addressing tables are included alongside it.
 See [the Packet Tracer walkthrough](demos/packet-tracer/campus/START%20HERE.md).
-The proposed-plan diagram has opened successfully; live ping and failure
+The proposed-plan diagram has opened successfully. Live ping and failure
 outcomes are still awaiting verification in Packet Tracer.
 
 ## Strategies compared
